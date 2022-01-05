@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+
+{% load humanize %}
+
+{% block title %}
+{{product.product_name}}
+{% endblock title %}
+
+{% block body %}
+
+<style>
+    .carousel-control-next-icon,
+    .carousel-control-prev-icon {
+        background-color: grey;
+    }
+
+    .carousel-indicators button {
+        background-color: rgb(173, 173, 173) !important;
+    }
+
+    .carousel-indicators .active {
+        background-color: rgb(70, 70, 70) !important;
+    }
+
+    .carousel-item {
+        height: 650px;
+        object-fit: cover;
+    }
+
+    .checked {
+        color: orange;
+    }
+</style>
+
+<div class="container my-4">
+    <div class="row">
+        <!-- LEFT SIDE -->
+        <div class="col-md-6">
+            <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0"
+                        class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1"
+                        aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2"
+                        aria-label="Slide 3"></button>
+                </div>
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img src="/media/{{product.image1}}" class="d-block w-100" alt="Carousel Image 1">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="/media/{{product.image2}}" class="d-block w-100" alt="Carousel Image 2">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="/media/{{product.image3}}" class="d-block w-100" alt="Carousel Image 3">
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators"
+                    data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators"
+                    data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+        <!-- RIGHT SIDE -->
+        <div class="col-md-6">
+            <h1 id="product-name" class="mb-3">{{product.product_name}}</h1>
+            <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);"
+                aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/category?category={{product.category}}&page=1">{{product.category}}</a></li>
+                    <li class="breadcrumb-item"><a href="/subcategory?subcategory={{product.sub_category}}&page=1">{{product.sub_category}}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{product.product_name}}</li>
+                </ol>
+            </nav>
+            <h3 class="pid" id="{{product.id}}" class="mb-3">&#8377; {{product.price}}</h3>
+            <h5 class="mb-3">Category: {{product.category}}</h5>
+            <h5 class="mb-3">Subategory: {{product.sub_category}}</h5>
+            <h5 class="mb-3">Rating: <span id="rating">{{product.avg_rating}}</span>/5</h5>
+            <h5 class="mb-3">
+                <span id="review-stars"></span>
+                Based on <span id="num-reviews">{{reviews|length}}</span> review(s)
+            </h5>
+            <span id="cart-change">
+            </span>
+            <span id="checkout">
+                <a href="/checkout" class="btn btn-success">Checkout</a>
+            </span>
+            <hr>
+            <h4 class="" style="font-weight: bold;">DESCRIPTION</h4>
+            <h5>{{product.desc|safe}}</h5>
+        </div>
+    </div>
+    <hr>
+
+    <!-- REVIEW SECTION -->
+    {% if request.user.is_authenticated %}
+    <h2>Leave a review</h2>
+    <!-- REVIEW FORM -->
+    <form action="/postReview" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="productSlug" value="{{product.slug}}">
+        <label for="rating" class="form-label">Select your rating for the product.</label>
+        <select name="rating" class="form-select mb-3" id="rating" aria-label="Default select example">
+            <option value="5" selected>5 Stars - Outstanding Product</option>
+            <option value="4">4 Stars - Good Product</option>
+            <option value="3">3 Stars - Average Product</option>
+            <option value="2">2 Stars - Below Average Product</option>
+            <option value="1">1 Star - Bad Product</option>
+        </select>
+        <div class="mb-3">
+            <label for="review" class="form-label">Write your review here.</label>
+            <textarea class="form-control" id="review" placeholder="Write your review here" name="review"
+                rows="5"></textarea>
+        </div>
+        <button type="submit" class="btn btn-success">Post</button>
+    </form>
+    {% else %}
+    <div class="alert alert-warning my-4" role="alert">
+        Please log in to post a review.
+    </div>
+    {% endif %}
+    <hr>
+    <h2 class="my-3">Customer reviews:-</h2>
+    <h3 class="mb-3" id="bottom-h3">
+        <span id="bottom-review-stars">
+        </span> Based on {{reviews|length}} review(s)
+    </h3>
+    {% if reviews|length > 0 %}
+    {% for review in reviews %}
+    <div class="card my-2">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-1">
+                    <img src="/static/user_icon.png" class="rounded mx-auto d-block w-100"
+                        style="min-width: 25px; max-width: 100px; height: auto;" alt="{{review.user}}">
+                </div>
+                <div class="col-11 ">
+                    <h5 class="mb-0"><b>@{{review.user}}</b> ({{review.rating}}/5)</h5>
+                    <p class="text text-muted">{{review.timestamp|naturaltime}}</p>
+                    <p class="overflow-auto mb-0">{{review.review}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="alert alert-warning my-4" role="alert">
+        No reviews have been posted yet. Be the first to leave a review.
+    </div>
+    {% endif %}
+
+</div>
+{% endblock body %}
+
+{% block js %}
+<script>
+    const rating = document.getElementById("rating").innerHTML;
+    const name = document.getElementById("product-name").innerHTML;
+    const price = document.getElementsByClassName("pid")[0].innerHTML;
+    const num_of_reviews = document.getElementById("num-reviews").innerHTML;
+    const id = document.getElementsByClassName("pid")[0].id;
+
+    idstr = "pr" + id;
+
+    console.log(rating);
+    console.log(name);
+    console.log(price);
+    console.log(num_of_reviews);
+    console.log(id);
+    console.log(idstr);
+
+    // Adding review stars dynamically
+    r = document.getElementById("review-stars");
+    b = document.getElementById("bottom-review-stars");
+    for (let i = 1; i <= 5; i++) {
+        if (i <= rating) {
+            r.innerHTML += `<span class="fa fa-star checked"></span>`;
+            b.innerHTML += `<span class="fa fa-star checked"></span>`;
+        }
+        else {
+            r.innerHTML += `<span class="fa fa-star"></span>`;
+            b.innerHTML += `<span class="fa fa-star"></span>`;
+        }
+    }
+
+    // Removing stars from review if there are no reviews
+    if (num_of_reviews == 0) {
+        document.getElementById("bottom-h3").innerHTML = "";
+    }
+
+    function string_to_slug(str) {
+        str = str.replace(/^\s+|\s+$/g, ''); // trim
+        str = str.toLowerCase();
+
+        // remove accents, swap ñ for n, etc
+        var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
+        var to = "aaaaeeeeiiiioooouuuunc------";
+        for (var i = 0, l = from.length; i < l; i++) {
+            str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+        }
+
+        str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+            .replace(/\s+/g, '-') // collapse whitespace and replace by -
+            .replace(/-+/g, '-'); // collapse dashes
+
+        return str;
+    }
+
+    function updatePopover(cart) {
+        var popStr = "<div class='mx-2'>";
+        var i = 0;
+        for (var item in cart) {
+            i += 1;
+            var pid = item.slice(2,);
+            slug = string_to_slug(cart[item][0]);
+            popStr += "<b>" + i + " </b>";
+            popStr += `<a href="/product/${slug}">${cart[item][0].slice(0, 15)}</a> ... &#8377; ${cart[item][1]}<br>`;
+        }
+        popStr += "</div><br><a href='/checkout?p={{request.get_full_path}}' class='btn btn-success' id ='checkout'>Checkout</a>";
+        document.getElementById('popcart').setAttribute('data-bs-content', popStr);
+        document.getElementById('cart-badge').innerHTML = i;
+    }
+
+    function clearCart() {
+        console.log("clearing");
+        document.getElementById('clearCartSpan').innerHTML = "";
+        document.getElementById("popcart").setAttribute('data-bs-content', '<h5>Cart Empty</h5>');
+        localStorage.clear();
+    }
+
+    if (localStorage.getItem('cart') == undefined || localStorage.getItem('cart') == null || localStorage.getItem('cart') == "{}") {
+        // Cart Empty
+        document.getElementById('cart-badge').innerHTML = 0;
+        document.getElementById("popcart").setAttribute('data-bs-content', '<h5>Cart Empty</h5>');
+        document.getElementById('clearCartSpan').innerHTML = "";
+        document.getElementById('cart-change').innerHTML = "<button href='' class='btn btn-success change'>Add to Cart</button>";
+        mystr = `<div class="alert alert-danger" role="alert">
+            Your Cart is empty. Please add some items to your cart before checking out!
+            </div>`;
+            $('#items').append(mystr);
+            document.getElementById('uq').innerHTML = "";
+        }
+        else {
+        // Cart Not Empty
+        cart = JSON.parse(localStorage.getItem('cart'));
+        console.log("cart ", cart);
+        updatePopover(cart);
+        document.getElementById('clearCartSpan').innerHTML = "<a href='' class='btn btn-outline-danger' id='clear' onclick='clearCart()'>Clear Cart</a>";
+        if (cart[idstr] == undefined) {
+            // Item not in cart
+            document.getElementById('cart-change').innerHTML = "<button href='' class='btn btn-success change'>Add to Cart</button>";
+        }
+        else {
+            // Item in cart
+            document.getElementById('cart-change').innerHTML = "<button href='' class='btn btn-outline-danger change'>Remove From Cart</button>";
+        }
+        
+    }
+
+    $("#cart-change").on('click', 'button.change', function() {
+        console.log("cart change clicked");
+        cart = JSON.parse(localStorage.getItem('cart'));
+        if (cart[idstr] == undefined) {
+            // Item not in cart, add it
+            cart[idstr] = [name, price, 1];
+            document.getElementById('cart-change').innerHTML = "<button href='' class='btn btn-outline-danger change'>Remove From Cart</button>";
+            console.log("Item added");
+        }
+        else {
+            // Item in cart, remove it
+            delete cart[idstr];
+            document.getElementById('cart-change').innerHTML = "<button href='' class='btn btn-success change'>Add to Cart</button>";
+            console.log("Item deleted");
+        }
+        localStorage.setItem('cart', JSON.stringify(cart));
+    });
+</script>
+{% endblock js %}

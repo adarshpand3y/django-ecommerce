@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+
+{% block title %} Checkout {% endblock title %}
+
+{% block body %}
+<style>
+    .scale {
+        font-size: 17px;
+    }
+
+    .scale:hover {
+        font-size: 20px;
+        transition: 0.2s;
+    }
+
+    .list-group-item a {
+        color: #212529;
+        /* color: #0d6efd; */
+        font-weight: 600;
+
+    }
+
+    .list-group-item a:hover {
+
+        /* color: #0d6efd; */
+        color: #198754;
+        transition: 0.2s;
+    }
+
+    ol li select {
+        width: 100px !important;
+    }
+</style>
+
+<div class="container">
+    <div class="py-5 text-center">
+        <h1 style="font-family: 'Merienda', cursive">Fusion Store</h1>
+        <h3 style="font-family: 'Merienda', cursive">
+            Thank You for shopping with us.
+        </h3>
+        <p class="lead">Please review your order once more before finalizing.</p>
+    </div>
+
+    <div class="my-4">
+        <h3>Step 1 - Review Your Cart Items.</h3>
+        <h6 class="text-muted">Click on a product to know more.</h6>
+        <h6 class="text-muted mb-3">Note: The quantity will get changed only when you click the update quantity button.
+        </h6>
+        <ol class="list-group list-group-numbered" id="items">
+        </ol>
+        <ul class="list-group list-group my-4" id="totalPrice">
+        </ul>
+        <div id="uq" class="d-grid gap-2 col-6 mx-auto">
+            <button onclick="updateQuantity()" class="btn btn-success">Update Quantity</button>
+        </div>
+
+    </div>
+
+    <div class="my-2">
+        <h3>Step 2 - Enter Your Delivery and Contact Details.</h3>
+        <form id="checkout-form" method="POST" action="/checkout" class="row g-3">
+            {% csrf_token %}
+            <input type="hidden" id="items-input" name="items" value="">
+            <div class="col-md-6">
+                <label for="firstname" class="form-label">First Name</label>
+                <input type="text" name="firstname" placeholder="First Name" required minlength="3" maxlength="25"
+                    class="form-control" id="fistname">
+            </div>
+            <div class="col-md-6">
+                <label for="lastname" class="form-label">Last Name</label>
+                <input type="text" name="lastname" placeholder="Last Name" required minlength="3" maxlength="25"
+                    class="form-control" id="lastname">
+            </div>
+            <div class="col-12">
+                <label for="address1" class="form-label">Address Line 1</label>
+                <input type="text" class="form-control" name="address1" id="address1" required maxlength="100"
+                    placeholder="1234 Main St">
+            </div>
+            <div class="col-12">
+                <label for="address2" class="form-label">Address Line 2</label>
+                <input type="text" class="form-control" name="address2" id="address2" required maxlength="100"
+                    placeholder="Apartment, studio, or floor">
+            </div>
+
+            <div class="col-md-4">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" name="email" placeholder="Your Email Id" required maxlength="50"
+                    class="form-control" id="email">
+            </div>
+            <div class="col-md-4">
+                <label for="phone" class="form-label">Phone Number</label>
+                <input type="tel" minlength="10" maxlength="10" name="phone" placeholder="Your Phone Number"
+                    class="form-control" id="phone">
+            </div>
+            <div class="col-md-4">
+                <label for="coupon" class="form-label">Coupon Code(Optional)</label>
+                <input type="text" maxlength="10" name="coupon" placeholder="Enter Code Here" class="form-control"
+                    id="coupon">
+            </div>
+            <div class="col-md-3">
+                <label for="city" class="form-label">City</label>
+                <input type="text" class="form-control" required maxlength="50" placeholder="City Name" name="city"
+                    id="city">
+            </div>
+            <div class="col-md-3">
+                <label for="state" class="form-label">State</label>
+                <select id="state" name="state" class="form-select">
+                    <option selected>Choose Your State</option>
+                    <option>Andhra Pradesh</option>
+                    <option>Arunachal Pradesh</option>
+                    <option>Assam</option>
+                    <option>Bihar</option>
+                    <option>Chhattisgarh</option>
+                    <option>Goa</option>
+                    <option>Gujarat</option>
+                    <option>Haryana</option>
+                    <option>Himachal Pradesh</option>
+                    <option>Jharkhand</option>
+                    <option>Karnataka</option>
+                    <option>Kerala</option>
+                    <option>Madhya Pradesh</option>
+                    <option>Maharashtra</option>
+                    <option>Manipur</option>
+                    <option>Meghalaya</option>
+                    <option>Mizoram</option>
+                    <option>Nagaland</option>
+                    <option>Odisha</option>
+                    <option>Punjab</option>
+                    <option>Rajasthan</option>
+                    <option>Sikkim</option>
+                    <option>Tamil Nadu</option>
+                    <option>Telangana</option>
+                    <option>Tripura</option>
+                    <option>Uttar Pradesh</option>
+                    <option>Uttarakhand</option>
+                    <option>West Bengal</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="pincode" class="form-label">Pin Code</label>
+                <input type="tel" placeholder="Pin Code" minlength="6" required maxlength="6" class="form-control"
+                    id="pincode" name="pincode">
+            </div>
+            <div class="col-md-3">
+                <label for="landmark" class="form-label">Landmark</label>
+                <input type="text" class="form-control" placeholder="Landmark" required maxlength="50" name="landmark"
+                    id="landmark">
+            </div>
+            <span id="error-message"></span>
+            <button type="button" onclick="placeOrder()" class="btn btn-success gap-2 col-6 mx-auto">Place
+                Order!</button>
+        </form>
+    </div>
+    <div class="pt-4">
+        <h3 class="text-center" style="font-family: 'Merienda', cursive">
+            Do shop with us again.
+        </h3>
+    </div>
+</div>
+{% endblock body %}
+
+{% block js %}
+<script>
+    function string_to_slug(str) {
+        str = str.replace(/^\s+|\s+$/g, ''); // trim
+        str = str.toLowerCase();
+
+        // remove accents, swap ñ for n, etc
+        var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
+        var to = "aaaaeeeeiiiioooouuuunc------";
+        for (var i = 0, l = from.length; i < l; i++) {
+            str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+        }
+
+        str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+            .replace(/\s+/g, '-') // collapse whitespace and replace by -
+            .replace(/-+/g, '-'); // collapse dashes
+
+        return str;
+    }
+
+    function updatePopover(cart) {
+        var popStr = "<div class='mx-2'>";
+        var i = 0;
+        for (var item in cart) {
+            i += 1;
+            var pid = item.slice(2,);
+            slug = string_to_slug(cart[item][0]);
+            popStr += "<b>" + i + " </b>";
+            popStr += `<a href="/product/${slug}">${cart[item][0].slice(0, 15)}</a> ... &#8377; ${cart[item][1]}<br>`;
+        }
+        popStr += "</div><br><a href='/checkout' class='btn btn-success' id ='checkout'>Checkout</a>";
+        document.getElementById('popcart').setAttribute('data-bs-content', popStr);
+        document.getElementById('cart-badge').innerHTML = i;
+    }
+
+    function clearCart() {
+        console.log("clearing");
+        document.getElementById('clearCartSpan').innerHTML = "";
+        document.getElementById("popcart").setAttribute('data-bs-content', '<h5>Cart Empty</h5>');
+        localStorage.clear();
+    }
+
+    if (localStorage.getItem('cart') == undefined || localStorage.getItem('cart') == null || localStorage.getItem('cart') == "{}") {
+        document.getElementById('cart-badge').innerHTML = 0;
+        document.getElementById("popcart").setAttribute('data-bs-content', '<h5>Cart Empty</h5>');
+        document.getElementById('clearCartSpan').innerHTML = "";
+        document.getElementById('items-input').value = "";
+        mystr = `<div class="alert alert-danger" role="alert">
+                    Your Cart is empty. Please add some items to your cart before checking out!
+                </div>`;
+        $('#items').append(mystr);
+        document.getElementById('uq').innerHTML = "";
+    }
+    else {
+        cart = JSON.parse(localStorage.getItem('cart'));
+        console.log("cart ", cart);
+        document.getElementById('items-input').value = JSON.stringify(cart);
+        updatePopover(cart);
+        document.getElementById('clearCartSpan').innerHTML = "<a href='' class='btn btn-outline-danger' id='clear' onclick='clearCart()'>Clear Cart</a>";
+        updateItems();
+    }
+
+    function updateItems() {
+        document.getElementById('items').innerHTML = "";
+        document.getElementById('totalPrice').innerHTML = "";
+        cart = JSON.parse(localStorage.getItem('cart'));
+        let total = 0, i = 0;
+        for (item in cart) {
+            let qty = 1;
+            let name = cart[item][0];
+            let price = cart[item][1];
+            let slug = string_to_slug(name);
+            mystr = `<li class="list-group-item scale d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div><a href="/product/${slug}">${name}</a></div>
+                        </div>
+                        <span class="badge bg-success rounded-pill mx-2">Rs. ${price}</span>
+                        <select class="form-select qty-select" id="${item}" aria-label="Select Quantity">`;
+            for (let i = 0; i <= 5; i++) {
+                if (i == 0) {
+                    mystr += `<option class="updateVal" value="${i}">${i} (Remove)</option>`;
+                }
+                else if (i == cart[item][2]) {
+                    mystr += `<option class="updateVal" selected value="${i}">${i}</option>`;
+                }
+                else {
+                    mystr += `<option class="updateVal" value="${i}">${i}</option>`;
+                }
+            }
+
+
+            // TODO
+            // Remove item when its quantity is set to 0.
+
+
+
+            mystr += `</select>
+                    </li>`;
+            $('#items').append(mystr);
+        }
+        total = 0;
+        for (item in cart) {
+            var e = document.getElementById(item);
+            qty = e.options[e.selectedIndex].value;
+            if (qty == 0) {
+                delete cart[item];
+            }
+            cart[item][2] = qty;
+            total += cart[item][1] * qty;
+        }
+        total_Price = `<li class="list-group-item d-flex justify-content-between align-items-center">
+                            <b>Total</b>
+                            <span class="badge bg-success rounded-pill">&#8377<span id="total"></span></span>
+                        </li>`;
+        $('#totalPrice').append(total_Price);
+        document.getElementById('total').innerHTML = total;
+        $('#items-input').val(JSON.stringify(cart));
+        // console.log($('#items-input'));
+    }
+
+    function updateQuantity() {
+        cart = JSON.parse(localStorage.getItem('cart'));
+        total = 0;
+        size = 0;
+        // Finding quantity of each item in cart
+        console.log(cart);
+        for (item in cart) {
+            var e = document.getElementById(item);
+            qty = e.options[e.selectedIndex].value;
+            if (qty == 0) {
+                delete cart[item];
+            }
+            else {
+                cart[item][2] = qty;
+                total += cart[item][1] * qty;
+            }
+        }
+        localStorage.setItem('cart', JSON.stringify(cart));
+        for (item in cart) {
+            if (cart.hasOwnProperty(item)) size++;
+        }
+        console.log("size ", size);
+        if (size > 0) {
+            console.log("size >zero so in if");
+            updateItems();
+            document.getElementById('total').innerHTML = total;
+            document.getElementById('items-input').value = JSON.stringify(cart);
+        }
+        else {
+            console.log("size 0 so in else");
+            document.getElementById('items').innerHTML = `<div class="alert alert-danger" role="alert">
+                    Your Cart is empty. Please add some items to your cart before checking out!
+                </div>`;
+            document.getElementById('totalPrice').innerHTML = "";
+            document.getElementById('uq').innerHTML = "";
+            document.getElementById('clearCartSpan').innerHTML = "";
+            document.getElementById('cart-badge').innerHTML = "0";
+            document.getElementById("popcart").setAttribute('data-bs-content', '<h5>Cart Empty</h5>');
+            document.getElementById('items-input').value = "";
+        }
+    }
+
+    function placeOrder() {
+        console.log("Submit");
+        console.log($('input[name=coupon]').val());
+        console.log($('input[name=csrfmiddlewaretoken]').val());
+        // TODO
+        // Client side form verification before placing order
+        if ($('input[name=coupon]').val() == "") {
+            document.getElementById("checkout-form").submit();
+        }
+        else {
+            var formData = {
+                'couponcode': $('input[name=coupon]').val(),
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+            };
+            $.ajax({
+                type: "POST",
+                url: "/checkCoupon",
+                data: formData,
+                encode: true
+            })
+                .done(function (data) {
+                    canSubmit = data['val'];
+                    console.log(canSubmit);
+                    if (canSubmit) {
+                        clearCart();
+                        document.getElementById("checkout-form").submit();
+                    }
+                    else {
+                        console.log("Cannot submit");
+                        document.getElementById("error-message").innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                Coupon code is either invalid or expired!
+                </div>`;
+                    }
+                });
+            event.preventDefault();
+        }
+    }
+</script>
+{% endblock js %}

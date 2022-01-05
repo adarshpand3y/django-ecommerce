@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Search Results for '{{query}}'
+{% endblock title %}
+
+{% block body %}
+
+<style>
+    .card-img-top {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .card {
+        transition: box-shadow .3s;
+    }
+
+    .card:hover {
+        box-shadow: 0 0 11px rgba(33, 33, 33, .2);
+        transition: box-shadow .3s;
+    }
+
+    .preview {
+        text-align: justify;
+    }
+
+    .page-item a {
+        padding: .375rem .85rem;
+        margin: 0 10px;
+
+    }
+</style>
+
+<div class="container">
+    <h2 class="mt-4">Showing products for search result {{query}}</h2>
+    <p class="pagination text-muted">Page {{this_page_num}} of {{num_of_pages}}</p>
+    <div class="row">
+        {% for product in products %}
+        <div class="col-12 col-md-6 col-lg-3 my-3">
+            <div class="card p-0" data-aos="zoom-in">
+                <img src="/media/{{product.image1}}" class="card-img-top" alt="{{product.product_name}}">
+                <div class="card-body">
+                    <h5 class="card-title" id="namepr{{product.id}}">{{product.product_name}}</h5>
+                    <p class="my-2">
+                    <div class="preview">
+                        {{product.desc|safe|truncatechars:150}}
+                    </div>
+                    </p>
+                    <h5>&#8377;<span id="pricepr{{product.id}}">{{product.price}}</span></h5>
+                    <a href="/product/{{product.slug}}" class="btn btn-success">More Info</a>
+                    {% if product.stock > 0 %}
+                    <span class="divpr" id="divpr{{product.id}}">
+                        <button id="pr{{product.id}}" class="btn btn-success cart">Add to Cart</button>
+                    </span>
+                    {% else %}
+                    <button class="btn btn-danger">Out of Stock</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <nav aria-label="Pagination">
+        <ul class="pagination justify-content-center">
+            {% if products.has_previous %}
+            <li class="page-item">
+                <a class="page-link rounded-pill"
+                    href="/search?query={{query}}&page={{products.previous_page_number}}">&laquo;</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <a class="page-link rounded-pill" tabindex="-1" aria-disabled="true">&laquo;</a>
+            </li>
+            {% endif %}
+            <li class="page-item active"><a class="page-link rounded-pill" href="#">{{this_page_num}}</a></li>
+            {% if products.has_next %}
+            <li class="page-item">
+                <a class="page-link rounded-pill"
+                    href="/search?query={{query}}&page={{products.next_page_number}}">&raquo;</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <a class="page-link rounded-pill" tabindex="-1" aria-disabled="true">&raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+        <p class="pagination justify-content-center text-muted">Page {{this_page_num}} of {{num_of_pages}}</p>
+    </nav>
+</div>
+{% endblock body %}
+
+{% block js %}
+<script>
+    // Change innerHTML to innerText
+    function change() {
+        previews = document.getElementsByClassName('preview');
+        Array.from(previews).forEach((element) => {
+            element.innerHTML = element.innerText;
+        })
+    }
+    change();
+
+    // Cart Logic
+    function string_to_slug(str) {
+        str = str.replace(/^\s+|\s+$/g, ''); // trim
+        str = str.toLowerCase();
+
+        // remove accents, swap ñ for n, etc
+        var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
+        var to = "aaaaeeeeiiiioooouuuunc------";
+        for (var i = 0, l = from.length; i < l; i++) {
+            str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+        }
+
+        str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+            .replace(/\s+/g, '-') // collapse whitespace and replace by -
+            .replace(/-+/g, '-'); // collapse dashes
+
+        return str;
+    }
+
+    function updatePopover(cart) {
+        var popStr = "<div class='mx-2'>";
+        var i = 0;
+        for (var item in cart) {
+            i += 1;
+            var pid = item.slice(2,);
+            slug = string_to_slug(cart[item][0]);
+            popStr += "<b>" + i + " </b>";
+            popStr += `<a href="/product/${slug}">${cart[item][0].slice(0, 15)}</a> ... &#8377; ${cart[item][1]}<br>`;
+        }
+        popStr += "</div><br><a href='/checkout?p={{request.get_full_path}}' class='btn btn-success' id ='checkout'>Checkout</a>";
+        document.getElementById('popcart').setAttribute('data-bs-content', popStr);
+        document.getElementById('cart-badge').innerHTML = i;
+    }
+
+    function clearCart() {
+        localStorage.clear();
+        document.getElementById('clearCartSpan').innerHTML = "";
+        document.getElementById("popcart").setAttribute('data-bs-content', '<h5>Cart Empty</h5>');
+    }
+
+    if (localStorage.getItem('cart') == undefined || localStorage.getItem('cart') == '{}') {
+        // Cart Empty
+        document.getElementById('cart-badge').innerHTML = 0;
+        document.getElementById("popcart").setAttribute('data-bs-content', '<h5>Cart Empty</h5>');
+        document.getElementById('clearCartSpan').innerHTML = "";
+    }
+    else {
+        // Cart Not Empty
+        cart = JSON.parse(localStorage.getItem('cart'));
+        document.getElementById('clearCartSpan').innerHTML = "<a href='' class='btn btn-outline-danger' id='clear' onclick='clearCart()'>Clear Cart</a>";
+        updatePopover(cart);
+        for (let item in cart) {
+            it = document.getElementById(item);
+            if (it != null) {
+                it.innerHTML = "Remove from Cart";
+                it.classList.remove('btn-success');
+                it.classList.add('btn-outline-danger');
+            }
+        }
+    }
+
+    // Adding item in cart
+    $('.divpr').on('click', 'button.cart', function () {
+        var idstr = this.id.toString();
+        console.log("idstr = " + idstr);
+
+        let cart = JSON.parse(localStorage.getItem('cart'));
+        console.log('cart: ', cart);
+        if (cart == null) {
+            cart = {};
+        }
+        if (cart[idstr] == undefined) {
+            name = document.getElementById("name" + idstr).innerHTML;
+            price = document.getElementById("price" + idstr).innerHTML;
+            console.log(name, price);
+            cart[idstr] = [name, price, 1];
+            document.getElementById(idstr).innerHTML = "Remove from Cart";
+            document.getElementById(idstr).classList.remove('btn-success');
+            document.getElementById(idstr).classList.add('btn-outline-danger');
+        }
+        else {
+            delete cart[idstr];
+            document.getElementById(idstr).innerHTML = "Add to Cart";
+            document.getElementById(idstr).classList.remove('btn-outline-danger');
+            document.getElementById(idstr).classList.add('btn-success');
+        }
+        localStorage.setItem('cart', JSON.stringify(cart));
+        console.log(cart);
+        updatePopover(cart);
+        if (cart == null || localStorage.getItem('cart') == "{}") {
+            document.getElementById('clearCartSpan').innerHTML = "";
+            document.getElementById("popcart").setAttribute('data-bs-content', '<h5>Cart Empty</h5>');
+            console.log("cart empty");
+        }
+        else {
+            console.log("cart not empty");
+            document.getElementById('clearCartSpan').innerHTML = "<a href='' class='btn btn-outline-danger' id='clear' onclick='clearCart()'>Clear Cart</a>";
+        }
+    });
+</script>
+{% endblock js %}

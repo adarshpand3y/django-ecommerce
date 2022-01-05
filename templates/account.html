@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Account Settings
+{% endblock title %}
+
+{% block body %}
+
+<style>
+    .nav-tabs li a {
+        font-weight: 600;
+    }
+
+    .tab-content {
+        min-height: 55vh;
+    }
+
+    .input-for-otp {
+        text-transform: uppercase;
+    }
+</style>
+
+<div class="container">
+    <h1 class="my-4 text-center">Account Settings</h1>
+    <ul class="nav nav-tabs nav-fill">
+        <li class="nav-item">
+            <a class="nav-link active" id="click-update-profile" aria-current="page" data-bs-toggle="tab"
+                href="#profile">Update Profile</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="click-update-address" data-bs-toggle="tab" href="#address">Update Address</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="click-update-password" data-bs-toggle="tab" href="#password">Update Password</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="click-forgot-password" data-bs-toggle="tab" href="#forgot-password">Forgot
+                Password</a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+
+        <div class="tab-pane active" id="profile">
+            <div class="d-grid gap-2 col-lg-6 mx-auto">
+                <h2 class="my-4 mx-auto">Update Profile Details</h2>
+                <form action="/updateProfile" method="POST">
+                    {% csrf_token %}
+                    <input type="text" id="firstname" value="{{first}}" name="firstname" class="form-control mb-4"
+                        placeholder="First name" aria-label="First name">
+                    <input type="text" id="lastname" value="{{last}}" name="lastname" class="form-control mb-4"
+                        placeholder="Last name" aria-label="Last name">
+                    <div class="row mb-4">
+                        <div class="col-8">
+                            <input type="text" id="useremail" value="{{email}}" name="useremail" class="form-control"
+                                placeholder="Email" aria-label="Email">
+                        </div>
+                        <div class="col-4">
+                            <div class="d-grid gap-2 col-12 mx-auto">
+                                <button class="btn btn-success" id="acc-otp-button" type="button" onclick="sendOTP()">
+                                    Send OTP
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="text" id="update-profile-otp" name="update-profile-otp-input" maxlength="6"
+                        style="text-transform: uppercase;" class="form-control mb-4"
+                        placeholder="Enter OTP (Only if you are updating email)"
+                        aria-label="Enter OTP (Only if you are updating email)">
+                    <input type="hidden" name="update-profile-otp-id" id="update-profile-otp-id">
+                    <div class="d-grid gap-2 col-6 mx-auto">
+                        <button class="btn btn-success" id="update-profile-otp" type="submit">
+                            Update Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+
+        <div class="tab-pane" id="address">
+            <div class="d-grid gap-2 col-lg-6 mx-auto">
+                <h2 class="my-4 mx-auto">Update Address</h2>
+                <form action="/updateAddress" method="POST">
+                    {% csrf_token %}
+                    <input type="text" id="add1" name="add1" value="{{add1}}" class="form-control mb-4"
+                        placeholder="Address Line 1" aria-label="Address Line 1">
+                    <input type="text" id="add2" name="add2" value="{{add2}}" class="form-control mb-4"
+                        placeholder="Address Line 2" aria-label="Address Line 2">
+                    <div class="row mb-4">
+                        <div class="col">
+                            <input type="text" id="city" name="city" value="{{city}}" class="form-control"
+                                placeholder="City" aria-label="City">
+                        </div>
+                        <div class="col">
+                            <select id="state" name="state" class="form-select">
+                                <option selected>Choose Your State</option>
+                                <option>Andhra Pradesh</option>
+                                <option>Arunachal Pradesh</option>
+                                <option>Assam</option>
+                                <option>Bihar</option>
+                                <option>Chhattisgarh</option>
+                                <option>Goa</option>
+                                <option>Gujarat</option>
+                                <option>Haryana</option>
+                                <option>Himachal Pradesh</option>
+                                <option>Jharkhand</option>
+                                <option>Karnataka</option>
+                                <option>Kerala</option>
+                                <option>Madhya Pradesh</option>
+                                <option>Maharashtra</option>
+                                <option>Manipur</option>
+                                <option>Meghalaya</option>
+                                <option>Mizoram</option>
+                                <option>Nagaland</option>
+                                <option>Odisha</option>
+                                <option>Punjab</option>
+                                <option>Rajasthan</option>
+                                <option>Sikkim</option>
+                                <option>Tamil Nadu</option>
+                                <option>Telangana</option>
+                                <option>Tripura</option>
+                                <option>Uttar Pradesh</option>
+                                <option>Uttarakhand</option>
+                                <option>West Bengal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col">
+                            <input type="tel" id="pincode" name="pincode" value="{{pincode}}" class="form-control"
+                                placeholder="Pincode" aria-label="Pincode">
+                        </div>
+                        <div class="col">
+                            <input type="text" id="landmark" name="landmark" value="{{landmark}}" class="form-control"
+                                placeholder="Landmark" aria-label="Landmark">
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 col-6 mx-auto">
+                        <button class="btn btn-success" type="submit">
+                            Update Address
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="tab-pane" id="password">
+            <div class="d-grid gap-2 col-lg-6 mx-auto">
+                <h2 class="my-4 mx-auto">Update Password</h2>
+                <form action="/updatePassword" method="POST">
+                    {% csrf_token %}
+                    <input type="password" class="form-control mb-4" id="oldpass" name="oldpass"
+                        placeholder="Enter Old Password" aria-label="Enter Old Password">
+                    <input type="password" class="form-control mb-4" id="newpass" name="newpass"
+                        placeholder="Enter New Password" aria-label="Enter New Password">
+                    <input type="password" class="form-control mb-4" id="confpass" name="confpass"
+                        placeholder="Confirm new Password" aria-label="Confirm new Password">
+
+                    <div class="d-grid gap-2 col-6 mx-auto">
+                        <button class="btn btn-success" type="submit">
+                            Update Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="tab-pane" id="forgot-password">
+            <div class="d-grid gap-2 col-lg-6 mx-auto">
+                <h2 class="my-4 mx-auto">Forgot Password</h2>
+                <form action="/updatePassword" method="POST">
+                    {% csrf_token %}
+                    <div class="row mb-4">
+                        <div class="col-8">
+                            <input type="text" id="forgot_pass_email" value="{{email}}" name="forgot_pass_email"
+                                class="form-control" placeholder="Email" aria-label="Email">
+                        </div>
+                        <div class="col-4">
+                            <div class="d-grid gap-2 col-12 mx-auto">
+                                <button class="btn btn-success">
+                                    Send OTP
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="text" class="form-control mb-4" maxlength="6" style="text-transform: uppercase;"
+                        id="otp" name="otp" placeholder="Enter Sent OTP" aria-label="Enter Sent OTP">
+                    <input type="password" class="form-control mb-4" id="forgot_pass_newpass" name="forgot_pass_newpass"
+                        placeholder="Enter New Password" aria-label="Enter New Password">
+                    <input type="password" class="form-control mb-4" id="forgot_pass_confpass"
+                        name="forgot_pass_confpass" placeholder="Confirm new Password"
+                        aria-label="Confirm new Password">
+
+                    <div class="d-grid gap-2 col-6 mx-auto">
+                        <button class="btn btn-success" type="submit">
+                            Set New Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock body %}
+
+{% block js %}
+<script>
+    let params = new URLSearchParams(document.location.search.substring(1));
+    var c = params.get("t");
+    if (c == 'profile') {
+        document.getElementById("click-update-profile").click();
+    }
+    else if (c == 'address') {
+        document.getElementById("click-update-address").click();
+    }
+    else if (c == 'password') {
+        document.getElementById("click-update-password").click();
+    }
+    else if (c == 'forgot') {
+        document.getElementById("click-forgot-password").click();
+    }
+
+    function string_to_slug(str) {
+            str = str.replace(/^\s+|\s+$/g, ''); // trim
+            str = str.toLowerCase();
+
+            // remove accents, swap ñ for n, etc
+            var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
+            var to = "aaaaeeeeiiiioooouuuunc------";
+            for (var i = 0, l = from.length; i < l; i++) {
+                str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+            }
+
+            str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+                .replace(/\s+/g, '-') // collapse whitespace and replace by -
+                .replace(/-+/g, '-'); // collapse dashes
+
+            return str;
+        }
+
+        function updatePopover(cart) {
+            var popStr = "<div class='mx-2'>";
+            var i = 0;
+            for (var item in cart) {
+                i += 1;
+                var pid = item.slice(2,);
+                slug = string_to_slug(cart[item][0]);
+                popStr += "<b>" + i + " </b>";
+                popStr += `<a href="/product/${slug}">${cart[item][0].slice(0, 15)}</a> ... &#8377; ${cart[item][1]}<br>`;
+            }
+            popStr += "</div><br><a href='/checkout' class='btn btn-success' id ='checkout'>Checkout</a>";
+            document.getElementById('popcart').setAttribute('data-bs-content', popStr);
+            document.getElementById('cart-badge').innerHTML = i;
+        }
+
+        function clearCart() {
+            console.log("clearing");
+            document.getElementById('clearCartSpan').innerHTML = "";
+            document.getElementById("popcart").setAttribute('data-bs-content', '<h5>Cart Empty</h5>');
+            localStorage.clear();
+        }
+
+        if (localStorage.getItem('cart') == undefined || localStorage.getItem('cart') == null || localStorage.getItem('cart') == "{}") {
+            document.getElementById('cart-badge').innerHTML = 0;
+            document.getElementById("popcart").setAttribute('data-bs-content', '<h5>Cart Empty</h5>');
+            document.getElementById('clearCartSpan').innerHTML = "";
+        }
+        else {
+            cart = JSON.parse(localStorage.getItem('cart'));
+            console.log("cart ", cart);
+            updatePopover(cart);
+            document.getElementById('clearCartSpan').innerHTML = "<a href='' class='btn btn-outline-danger' id='clear' onclick='clearCart()'>Clear Cart</a>";
+        }
+
+    function sendOTP() {
+        console.log("Account updating");
+        console.log($('input[name=useremail]').val());
+        console.log($('input[name=csrfmiddlewaretoken]').val());
+
+        var formData = {
+            'emailid': $('input[name=useremail]').val(),
+            'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+        };
+        console.log(formData);
+        document.getElementById("acc-otp-button").innerText = "Sending OTP...";
+        $.ajax({
+            type: "POST",
+            url: "/sendOTP",
+            data: formData,
+            encode: true
+        })
+            .done(function (data) {
+                // Do this when done
+                otpid = data['id'];
+                console.log(otpid);
+                document.getElementById("update-profile-otp-id").value = otpid;
+                document.getElementById("acc-otp-button").innerText = "Resend OTP";
+            });
+        event.preventDefault();
+    }
+
+</script>
+{% endblock js %}
